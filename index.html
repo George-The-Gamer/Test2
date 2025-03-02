@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Archive</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #sidebar {
+            width: 250px;
+            background: #2f3136;
+            color: white;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .channel {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .channel:hover {
+            background: #40444b;
+        }
+        #content {
+            flex: 1;
+            background: #36393f;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Channels</h2>
+        <div class="channel" onclick="loadChannel('ban land - 💬 chat - general [579937698039726081].html')"># general</div>
+        <div class="channel" onclick="loadChannel('channel2.html')"># memes</div>
+        <div class="channel" onclick="loadChannel('channel3.html')"># tech</div>
+    </div>
+    <div id="content">
+        <h2>Welcome</h2>
+        <p>Select a channel to load messages.</p>
+    </div>
+
+    <script>
+        function loadChannel(file) {
+            fetch(file)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('content').innerHTML = data;
+                })
+                .catch(error => {
+                    document.getElementById('content').innerHTML = '<p>Error loading channel.</p>';
+                });
+        }
+    </script>
+</body>
+</html>
