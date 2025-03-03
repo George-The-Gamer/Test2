@@ -19,15 +19,10 @@
 		
 		<div class="servers-collection">
 			<div class="server focusable unread" role="button" aria-label="Discord Developers unread">
-				<div class="server-icon"><img src="https://cdn.discordapp.com/icons/41771983423143937/edc44e98a690a1f76c5ddec68a0a6b9e.png" /></div>
+				<div class="server-icon"><img src="https://cdn.discordapp.com/icons/536710065118248980/35ceb9c172490c57ccd573436cd01bb2.png" /></div>
 			</div>
 		</div>
-		
-		<div class="servers-collection">
-			<div class="server focusable active" role="button" aria-label="My Server" aria-selected="true">
-				<div class="server-icon"><img src="https://discordapp.com/assets/0e291f67c9274a1abdddeb3fd919cbaa.png" /></div>
-			</div>
-		</div>
+
 	</aside>
 	
 	<aside class="channels">
@@ -45,7 +40,7 @@
         <li class="channel focusable channel-text active" onclick="loadChannel('channel1.html')">
           <span class="channel-name"># general</span>
         </li>
-        <li class="channel focusable channel-text" onclick="loadChannel('https://raw.githubusercontent.com/George-The-Gamer/Test2/refs/heads/main/ChannelProcess/index.html')">
+        <li class="channel focusable channel-text" onclick="loadChannel('channel2.html')">
           <span class="channel-name"># memes</span>
         </li>
         <li class="channel focusable channel-text" onclick="loadChannel('channel3.html')">
@@ -59,9 +54,9 @@
 		</section>
 		
 		<footer class="channels-footer">
-			<img class="avatar" alt="Avatar" src="https://discordapp.com/assets/0e291f67c9274a1abdddeb3fd919cbaa.png" />
+			<img class="avatar" alt="Avatar" src="https://avatars.githubusercontent.com/u/201272001?v=4" />
 			<div class="channels-footer-details">
-				<span class="username">yourself</span>
+				<span class="username" style="padding-right: 10px;">GeorgeTheGamer</span>
 				<span class="tag">#0001</span>
 			</div>
 			<div class="channels-footer-controls button-group">
@@ -81,6 +76,14 @@
       <h2>Welcome</h2>
       <p>Select a channel to load messages.</p>
     </section>
+    <style>
+  #content.chat {
+    width: 100%; /* Or any specific value like 500px */
+    height: 400px; /* Adjust to your desired height */
+    overflow-y: auto; /* Vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+  }
+</style>
   </div>
 </main>
 
