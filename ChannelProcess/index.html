@@ -130,7 +130,7 @@
 
     async function loadChatlog() {
         try {
-            const response = await fetch("chatlog.html"); 
+            const response = await fetch("https://raw.githubusercontent.com/George-The-Gamer/Test2/refs/heads/main/ChannelProcess/chatlog.html"); 
             if (!response.ok) throw new Error('Failed to load chatlog.html');
 
             const text = await response.text();
