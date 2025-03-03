@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatlog Search</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2f3136;
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+        #chatlogContainer {
+            flex: 1;
+            overflow-y: auto;
+            border-right: 1px solid #444;
+            padding-right: 15px;
+            background-color: #36393f;
+            height: 100%;
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-top: 20px;
+        }
+        #searchContainer {
+            width: 320px;
+            max-width: 100%;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #2f3136;
+            border-left: 1px solid #444;
+        }
+        #searchBar {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: none;
+            background-color: #40444b;
+            color: white;
+        }
+        #chatlog {
+            overflow-y: auto;
+        }
+        .highlight {
+            background-color: rgba(255, 255, 0, 0.2);
+        }
+        .message {
+            display: flex;
+            margin: 15px 0;
+            cursor: pointer;
+        }
+        .message:hover {
+            background-color: #4f5358;
+        }
+        .message-content {
+            display: inline-block;
+            margin-left: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .message-time {
+            font-size: 0.8em;
+            color: #b9bbbe;
+        }
+        .search-result {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .search-result:hover {
+            background-color: #444;
+        }
+        .search-result-username {
+            font-weight: bold;
+            color: #dcddde;
+        }
+        .search-result-message {
+            color: #b9bbbe;
+        }
+        .search-result-pfp {
+            width: 32px; /* Adjust size as needed */
+            height: 32px;
+            border-radius: 50%; /* Make it circular */
+        }
+
+        .chatlog__author-avatar-container {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+        }
+        .chatlog__author-avatar {
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+        }
+        .chatlog__messages {
+            display: flex;
+            flex-direction: column;
+        }
+        .chatlog__author-name {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .chatlog__timestamp {
+            color: #b9bbbe;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="chatlogContainer">
+        <div id="chatlog"></div>
+    </div>
+
+    <div id="searchContainer">
+        <input type="text" id="searchBar" placeholder="Search for usernames or messages..." oninput="searchMessages()">
+        <div id="searchResults"></div>
+    </div>
+
+<script>
+    // Initial variables
+    let messages = [];  // Array to store parsed messages
+    let loadedMessages = 0;  // Keep track of loaded messages
+
+    async function loadChatlog() {
+        try {
+            const response = await fetch("chatlog.html"); 
+            if (!response.ok) throw new Error('Failed to load chatlog.html');
+
+            const text = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, "text/html");
+
+            const messageGroups = doc.querySelectorAll('.chatlog__message-group');
+            messageGroups.forEach(group => {
+                const authorNameElement = group.querySelector('.chatlog__author-name');
+                const authorName = authorNameElement ? authorNameElement.innerText : 'Unknown';
+                const title = authorNameElement ? authorNameElement.getAttribute('title') : ''; // Get title
+                const messageTime = group.querySelector('.chatlog__timestamp')?.innerText || ''; // Time information
+                const messageContent = group.querySelector('.chatlog__message')?.innerHTML.trim(); // Preserve full HTML content
+                const userColor = authorNameElement ? authorNameElement.style.color : "rgb(0, 255, 255)"; // Default color
+
+                if (messageContent) {
+                    const message = {
+                        author: authorName,
+                        title: title,  // Store the title
+                        content: messageContent,  // Full HTML content
+                        time: messageTime,  // Include time if available
+                        avatarUrl: getAvatarUrl(group),  // Dynamically get avatar based on author
+                        userColor: userColor,  // Store the user color
+                        element: null
+                    };
+                    messages.push(message);
+                }
+            });
+
+            // Initially load first 20 messages
+            loadMoreMessages();
+        } catch (error) {
+            console.error("Error loading chatlog:", error);
+        }
+    }
+
+    // Function to get the avatar URL based on the message's HTML structure
+    function getAvatarUrl(messageElement) {
+        const avatarImgElement = messageElement.querySelector(".chatlog__author-avatar");
+
+        // Return the avatar URL if it exists, otherwise fallback to a default avatar
+        //return avatarImgElement ? avatarImgElement.src : "https://media.istockphoto.com/id/1472933890/vector/no-image-vector-symbol-missing-available-icon-no-gallery-for-this-moment-placeholder.jpg?s=612x612&w=0&k=20&c=Rdn-lecwAj8ciQEccm0Ep2RX50FCuUJOaEM8qQjiLL0=";
+        return avatarImgElement.src;
+    }
+
+
+
+    // Function to load more messages dynamically
+    function loadMoreMessages() {
+        const chatlog = document.getElementById("chatlog");
+        const chunkSize = 20;
+
+        for (let i = loadedMessages; i < loadedMessages + chunkSize && i < messages.length; i++) {
+            const message = messages[i];
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+
+            // Extract the relevant message data
+            const avatarUrl = message.avatarUrl || "https://cdn.discordapp.com/embed/avatars/0.png"; // Default avatar URL
+            const username = message.author || "Unknown User";
+            const title = message.title || "";
+            const timestamp = message.time || "";
+            const content = message.content || "";
+            const usernameColor = message.userColor || "rgb(255, 255, 255)";  // Use color from message data
+
+            // Construct the message HTML
+            messageDiv.innerHTML = `
+                <div class="chatlog__message-group">
+                    <div class="chatlog__author-avatar-container">
+                        <img class="chatlog__author-avatar" src="${avatarUrl}" alt="Avatar" loading="lazy">
+                    </div>
+
+                    <div class="chatlog__messages">
+                        <!-- Author Name with dynamic color -->
+                        <span class="chatlog__author-name" title="${title}" style="color: ${usernameColor}">${username}</span>
+
+                        <!-- Timestamp of the message -->
+                        <span class="chatlog__timestamp">${timestamp}</span>
+
+                        <div class="chatlog__message">
+                            <div class="chatlog__content">
+                                <div class="markdown">
+                                    <span class="preserve-whitespace">${content}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Append the message to the chatlog container
+            chatlog.appendChild(messageDiv);
+            message.element = messageDiv;  // Save the DOM element for scrolling later
+        }
+
+        loadedMessages += chunkSize;
+
+        if (loadedMessages < messages.length) {
+            const chatlog = document.getElementById("chatlog");
+            chatlog.addEventListener("scroll", onScroll);
+        }
+    }
+
+
+
+
+    // Function to handle scrolling and load more messages when near bottom
+    function onScroll() {
+        const chatlog = document.getElementById("chatlog");
+        if (chatlog.scrollTop + chatlog.clientHeight >= chatlog.scrollHeight - 10) {
+            loadMoreMessages();
+        }
+    }
+// Function to search messages
+function searchMessages() {
+    const query = document.getElementById("searchBar").value.toLowerCase();
+    const chatlog = document.getElementById("chatlog");
+    const messageDivs = chatlog.getElementsByClassName("message");
+    const searchResults = document.getElementById("searchResults");
+    searchResults.innerHTML = "";  // Clear previous search results
+
+    // Filter and show results in the search box
+    Array.from(messageDivs).forEach((div, index) => {
+        const messageText = div.querySelector(".chatlog__content").innerText.toLowerCase();  // Extract only the message content
+        const authorName = messages[index].author.toLowerCase();  // Get the username and convert to lowercase for search
+        
+        // Check if the query matches either the username or the message content
+        if (messageText.includes(query) || authorName.includes(query)) {
+            div.style.display = "block";  // Ensure message is visible
+            div.classList.add("highlight");
+
+            // Create a search result item (show the username, message, and profile picture)
+            const resultDiv = document.createElement("div");
+            resultDiv.classList.add("search-result");
+
+            // Get the username and profile picture
+            const pfpUrl = messages[index].avatarUrl || '';  // Use dynamic avatar URL
+
+            resultDiv.innerHTML = `
+                <div class="search-result-content">
+                    <img src="${pfpUrl}" alt="${messages[index].author}'s avatar" class="search-result-pfp" />
+                    <span class="search-result-username">${messages[index].author}</span>: 
+                    <span class="search-result-message">${messages[index].content.replace(/<[^>]*>/g, '')}</span>
+                </div>
+            `;
+            
+            // Scroll to the message when clicked
+            resultDiv.onclick = function() {
+                scrollToMessage(messages[index].element);
+            };
+            searchResults.appendChild(resultDiv);
+        } else {
+            div.style.display = "block";  // Ensure all messages are still visible
+            div.classList.remove("highlight");
+        }
+    });
+}
+
+
+
+    // Function to scroll to the selected message
+    function scrollToMessage(element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    // Load initial data when the page loads
+    loadChatlog();
+</script>
+
+</body>
+</html>
